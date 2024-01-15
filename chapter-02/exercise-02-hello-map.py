@@ -5,7 +5,22 @@ from time import sleep
 program = r"""
 BPF_HASH(counter_table);
 
-int hello(void *ctx) {
+int hello_openat(void *ctx) {
+   u64 uid;
+   u64 counter = 0;
+   u64 *p;
+
+   uid = bpf_get_current_uid_gid() & 0xFFFFFFFF;
+   p = counter_table.lookup(&uid);
+   if (p != 0) {
+      counter = *p;
+   }
+   counter++;
+   counter_table.update(&uid, &counter);
+   return 0;
+}
+
+int hello_write(void *ctx) {
    u64 uid;
    u64 counter = 0;
    u64 *p;
@@ -22,8 +37,9 @@ int hello(void *ctx) {
 """
 
 b = BPF(text=program)
-syscall = b.get_syscall_fnname("execve")
-b.attach_kprobe(event=syscall, fn_name="hello")
+for s in ("openat", "write"):
+    syscall = b.get_syscall_fnname(s)
+    b.attach_kprobe(event=syscall, fn_name="hello_"+s)
 
 # Attach to a tracepoint that gets hit for all syscalls
 # b.attach_raw_tracepoint(tp="sys_enter", fn_name="hello")
