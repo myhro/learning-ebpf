@@ -5,25 +5,23 @@ from time import sleep
 program = r"""
 BPF_HASH(counter_table);
 
-int hello(void *ctx) {
-   u64 uid;
+int hello(struct bpf_raw_tracepoint_args *ctx) {
    u64 counter = 0;
+   u64 opcode = ctx->args[1];
    u64 *p;
 
-   uid = bpf_get_current_uid_gid() & 0xFFFFFFFF;
-   p = counter_table.lookup(&uid);
+   p = counter_table.lookup(&opcode);
    if (p != 0) {
       counter = *p;
    }
    counter++;
-   counter_table.update(&uid, &counter);
+   counter_table.update(&opcode, &counter);
    return 0;
 }
 """
 
 b = BPF(text=program)
-syscall = b.get_syscall_fnname("execve")
-b.attach_kprobe(event=syscall, fn_name="hello")
+b.attach_raw_tracepoint(tp="sys_enter", fn_name="hello")
 
 # Attach to a tracepoint that gets hit for all syscalls
 # b.attach_raw_tracepoint(tp="sys_enter", fn_name="hello")
