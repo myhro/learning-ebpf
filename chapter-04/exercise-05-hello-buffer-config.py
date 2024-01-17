@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from bcc import BPF
 import ctypes as ct
+import time
 
 program = r"""
 struct user_msg_t {
@@ -19,7 +20,7 @@ struct data_t {
    char message[12];
 };
 
-int hello(void *ctx) {
+RAW_TRACEPOINT_PROBE(sys_enter) {
    struct data_t data = {};
    struct user_msg_t *p;
    char message[12] = "Hello World";
@@ -43,8 +44,7 @@ int hello(void *ctx) {
 """
 
 b = BPF(text=program)
-syscall = b.get_syscall_fnname("execve")
-b.attach_kprobe(event=syscall, fn_name="hello")
+
 b["config"][ct.c_int(0)] = ct.create_string_buffer(b"Hey root!")
 b["config"][ct.c_int(501)] = ct.create_string_buffer(b"Hi user 501!")
 
@@ -52,6 +52,5 @@ def print_event(cpu, data, size):
    data = b["output"].event(data)
    print(f"{data.pid} {data.uid} {data.command.decode()} {data.message.decode()}")
 
-b["output"].open_perf_buffer(print_event)
 while True:
-   b.perf_buffer_poll()
+   time.sleep(1)
