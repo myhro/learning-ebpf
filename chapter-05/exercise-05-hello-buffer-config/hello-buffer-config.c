@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <bpf/bpf.h>
 #include <bpf/libbpf.h>
 #include "hello-buffer-config.h"
 #include "hello-buffer-config.skel.h"
@@ -25,6 +26,10 @@ void lost_event(void *ctx, int cpu, long long unsigned int data_sz)
     printf("lost event\n");
 }
 
+void update_config_map(struct bpf_map *config, __u32 uid, struct user_msg_t msg) {
+    bpf_map_update_elem(bpf_map__fd(config), &uid, &msg, BPF_ANY);
+}
+
 int main()
 {
     struct hello_buffer_config_bpf *skel;
@@ -38,6 +43,9 @@ int main()
         printf("Failed to open BPF object\n");
         return 1;
     }
+
+    update_config_map(skel->maps.my_config, 0, (struct user_msg_t){.message = "Hey root!"});
+    update_config_map(skel->maps.my_config, 501, (struct user_msg_t){.message = "Hi user 501!"});
 
     err = hello_buffer_config_bpf__attach(skel);
     if (err) {

@@ -5,3 +5,7 @@ struct data_t {
    char message[12];
    char path[16];
 };
+
+struct user_msg_t {
+   char message[12];
+};
