@@ -1,4 +1,5 @@
 *.o
 *.skel.h
+hello
 hello-buffer-config
 vmlinux.h
