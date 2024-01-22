@@ -1,0 +1,18 @@
+diff --git a/chapter-07/hello.c b/chapter-07/hello.c
+index a3417a2..00e6b0a 100644
+--- a/chapter-07/hello.c
++++ b/chapter-07/hello.c
+@@ -48,6 +48,13 @@ int main()
+         return 1;
+     }
+ 
++    /* bpf_program__set_autoload(skel->progs.kprobe_sys_execve, false); */
++    bpf_program__set_autoload(skel->progs.kprobe_do_execve, false);
++    bpf_program__set_autoload(skel->progs.fentry_execve, false);
++    bpf_program__set_autoload(skel->progs.tp_sys_enter_execve, false);
++    bpf_program__set_autoload(skel->progs.tp_btf_exec, false);
++    bpf_program__set_autoload(skel->progs.raw_tp_exec, false);
++
+     err = hello_bpf__load(skel);
+     // Print the verifier log
+     for (int i=0; i < sizeof(log_buf); i++) {
