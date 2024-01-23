@@ -17,6 +17,9 @@ list:
 load:
 	sudo bpftool prog load ping.bpf.o /sys/fs/bpf/ping
 
+load-response:
+	sudo bpftool prog load exercise-01-ping-response.bpf.o /sys/fs/bpf/ping
+
 trace:
 	sudo cat /sys/kernel/debug/tracing/trace_pipe
 
