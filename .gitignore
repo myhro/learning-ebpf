@@ -1,5 +1,7 @@
 *.o
 *.skel.h
+*_bpfeb.go
+*_bpfel.go
 hello
 hello-buffer-config
 vmlinux.h
